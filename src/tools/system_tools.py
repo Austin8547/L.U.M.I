@@ -4,7 +4,7 @@ from src.system.cpu import cpu_load_check
 from src.system.ram import ram_usage_check
 from src.system.gpu import gpu_resource_check
 from src.system.temperature import system_temp_check
-
+from src.system.power import system_power_check
 
 @tool
 def get_cpu_status():
@@ -28,3 +28,14 @@ def get_gpu_status():
 def get_temperature_status():
     """Get CPU/system and NVIDIA GPU temperatures."""
     return system_temp_check()
+
+
+@tool
+def get_battery_status():
+    """Get the battery status of tje system"""
+    return system_power_check()
+
+
+
+
+    

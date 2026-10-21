@@ -11,34 +11,43 @@ from pynvml import (
 
 def system_temp_check():
 
-    print("=== System Temperatures ===")
+    result = []
+
+    result.append("=== System Temperatures ===")
 
     # CPU / System temperatures
     temperatures = psutil.sensors_temperatures()
 
-    for sensor, entries in temperatures.items():
-        for entry in entries:
-            name = entry.label or sensor
-            print(f"{name}: {entry.current:.1f}°C")
+    if temperatures:
+        for sensor, entries in temperatures.items():
+            for entry in entries:
+                name = entry.label or sensor
+                result.append(f"{name}: {entry.current:.1f}°C")
+    else:
+        result.append("No system temperature sensors detected.")
 
     # NVIDIA GPU temperatures
-    print("\n=== GPU Temperatures ===")
+    result.append("\n=== GPU Temperatures ===")
 
     nvmlInit()
 
-    for i in range(nvmlDeviceGetCount()):
-        handle = nvmlDeviceGetHandleByIndex(i)
-        temperature = nvmlDeviceGetTemperature(
-            handle,
-            NVML_TEMPERATURE_GPU
-        )
+    try:
+        device_count = nvmlDeviceGetCount()
 
-        print(f"GPU {i}: {temperature}°C")
+        if device_count == 0:
+            result.append("No NVIDIA GPU detected.")
 
-    nvmlShutdown()
+        for i in range(device_count):
+            handle = nvmlDeviceGetHandleByIndex(i)
 
+            temperature = nvmlDeviceGetTemperature(
+                handle,
+                NVML_TEMPERATURE_GPU
+            )
 
-def main():
-    system_temp_check()
+            result.append(f"GPU {i}: {temperature}°C")
 
+    finally:
+        nvmlShutdown()
 
+    return "\n".join(result)

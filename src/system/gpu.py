@@ -1,80 +1,129 @@
 import psutil
 import GPUtil
 
-gpus = GPUtil.getGPUs()
-for gpu in gpus:
-    print(f"GPU ID: {gpu.id} | Name: {gpu.name}")
-    print(f"  GPU Load:   {gpu.load * 100:.1f}%")
-    print(f"  VRAM Used:  {gpu.memoryUsed:.0f} MB / {gpu.memoryTotal:.0f} MB")
-
-
-def gpu_resource_check():
-    
-    gpus = GPUtil.getGPUs()
-    for gpu in gpus:
-        print(f"GPU ID: {gpu.id} | Name: {gpu.name}")
-        print(f"  GPU Load:   {gpu.load * 100:.1f}%")
-        print(f"  VRAM Used:  {gpu.memoryUsed:.0f} MB / {gpu.memoryTotal:.0f} MB")
-        
-    from pynvml import (
+from pynvml import (
     nvmlInit,
     nvmlDeviceGetHandleByIndex,
     nvmlDeviceGetCount,
     nvmlDeviceGetComputeRunningProcesses,
     nvmlDeviceGetGraphicsRunningProcesses,
     nvmlShutdown
-    )
-    
-    import psutil
+)
 
-# Initialize NVML
+
+def gpu_resource_check():
+
+    result = []
+
+    # -------------------------
+    # GPU Resource Information
+    # -------------------------
+
+    gpus = GPUtil.getGPUs()
+
+    if not gpus:
+        result.append("No GPU detected.")
+
+    for gpu in gpus:
+        result.append(
+            f"GPU ID: {gpu.id} | Name: {gpu.name}"
+        )
+
+        result.append(
+            f"  GPU Load:   {gpu.load * 100:.1f}%"
+        )
+
+        result.append(
+            f"  VRAM Used:  {gpu.memoryUsed:.0f} MB / "
+            f"{gpu.memoryTotal:.0f} MB"
+        )
+
+    # -------------------------
+    # GPU Process VRAM Usage
+    # -------------------------
+
     nvmlInit()
 
-    device_count = nvmlDeviceGetCount()
+    try:
+        device_count = nvmlDeviceGetCount()
 
-    for gpu_id in range(device_count):
-        handle = nvmlDeviceGetHandleByIndex(gpu_id)
-        print(f"\n--- GPU {gpu_id} Process VRAM Usage ---")
-    
-    # Collect both compute (CUDA/AI) and graphics (display/render) processes
-        processes = []
-        try:
-            processes.extend(nvmlDeviceGetComputeRunningProcesses(handle))
-        except Exception:
-            pass
+        for gpu_id in range(device_count):
 
-        try:
-            processes.extend(nvmlDeviceGetGraphicsRunningProcesses(handle))
-        except Exception:
-            pass
+            handle = nvmlDeviceGetHandleByIndex(gpu_id)
 
-        if not processes:
-            print("  No active processes utilizing VRAM.")
-            continue
+            result.append(
+                f"\n--- GPU {gpu_id} Process VRAM Usage ---"
+            )
 
-        print(f"{'PID':<8} {'Process Name':<30} {'VRAM Used (MB)':<15}")
-        print("-" * 55)
+            # Collect compute processes
+            processes = []
 
-        seen_pids = set()
-        for proc in processes:
-            pid = proc.pid
-            if pid in seen_pids:
-                continue
-            seen_pids.add(pid)
-
-            # Convert bytes to Megabytes (MB)
-            vram_mb = proc.usedGpuMemory / (1024 ** 2) if proc.usedGpuMemory is not None else 0
-
-            # Retrieve human-readable process name via psutil
             try:
-                name = psutil.Process(pid).name()
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                name = "[Unknown / Terminated]"
+                processes.extend(
+                    nvmlDeviceGetComputeRunningProcesses(handle)
+                )
+            except Exception:
+                pass
 
-            print(f"{pid:<8} {name:<30} {vram_mb:<15.2f}")
+            # Collect graphics processes
+            try:
+                processes.extend(
+                    nvmlDeviceGetGraphicsRunningProcesses(handle)
+                )
+            except Exception:
+                pass
 
-    # Shutdown NVML session
-    nvmlShutdown()
-    
+            if not processes:
+                result.append(
+                    "  No active processes utilizing VRAM."
+                )
+                continue
 
+            result.append(
+                f"{'PID':<8} "
+                f"{'Process Name':<30} "
+                f"{'VRAM Used (MB)':<15}"
+            )
 
+            result.append("-" * 55)
+
+            seen_pids = set()
+
+            for proc in processes:
+
+                pid = proc.pid
+
+                if pid in seen_pids:
+                    continue
+
+                seen_pids.add(pid)
+
+                # Convert bytes to MB
+                vram_mb = (
+                    proc.usedGpuMemory / (1024 ** 2)
+                    if proc.usedGpuMemory is not None
+                    else 0
+                )
+
+                # Get process name
+                try:
+                    name = psutil.Process(pid).name()
+
+                except (
+                    psutil.NoSuchProcess,
+                    psutil.AccessDenied
+                ):
+                    name = "[Unknown / Terminated]"
+
+                result.append(
+                    f"{pid:<8} "
+                    f"{name:<30} "
+                    f"{vram_mb:<15.2f}"
+                )
+
+    finally:
+        # Always shut down NVML
+        nvmlShutdown()
+
+    # Return everything to the agent
+    return "\n".join(result)
