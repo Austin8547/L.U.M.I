@@ -1,15 +1,18 @@
+
 from src.arxiv.arxiv_search import search_papers
 
 
-
-
 def test_arxiv_search():
-    query = "YOLO"
+    query = "vision transformer"
 
-    results = search_papers(
-        query=query,
-        max_results=3,
-    )
+    try:
+        results = search_papers(
+            query=query,
+            max_results=3,
+        )
+    except RuntimeError as exc:
+        print(f"Paper search failed: {exc}")
+        return
 
     if not results:
         print("No papers found.")

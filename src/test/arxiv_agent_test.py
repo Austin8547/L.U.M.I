@@ -7,7 +7,6 @@ response = arxiv_agent.invoke({
             "role": "user",
             "content": (
                 "Find 3 papers about vision transformers "
-                "for medical image analysis."
             ),
         }
     ]
