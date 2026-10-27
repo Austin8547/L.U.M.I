@@ -54,3 +54,4 @@ def record_and_transcribe(duration=5, sample_rate=SAMPLE_RATE):
         print(f"Error during local transcription: {e}")
         return None
     
+

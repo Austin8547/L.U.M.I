@@ -4,10 +4,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 from uuid import uuid4
 
-
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_DB_PATH = PROJECT_ROOT / "lumi_memory.db"
+DEFAULT_DB_PATH = Path("/home/austin/agentic/lumi/src/memory/lumi_memory.db")
 
 
 class ConversationMemory:

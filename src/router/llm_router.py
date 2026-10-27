@@ -10,66 +10,136 @@ llm = ChatGroq(
     temperature=0,
 )
 
+VALID_ROUTES = {"chat", "arxiv", "resources", "trip", "websearch"}
 
-# 2. Define the router instructions
 router_prompt = ChatPromptTemplate.from_messages([
     (
         "system",
         """
-        You are the routing controller for Lumi.
+You are the intent router for Lumi, a personal AI assistant.
 
-        Select exactly ONE agent for the user's query.
+Choose exactly ONE route for the user's CURRENT request.
 
-        Available agents:
+Available routes:
 
-        - arxiv:
-          Search academic papers, research topics,
-          authors, abstracts, and arXiv links.
+- chat: Greetings, casual conversation, explanations, programming
+  questions, AI/ML concepts, general knowledge, and questions you
+  can answer using the LLM's existing knowledge.
+- arxiv: Finding academic papers, research papers, authors, abstracts,
+  and arXiv links.
+- resources: Checking CPU, RAM, GPU, battery, temperatures,
+  and running processes.
+- trip: Planning travel routes, distances, and directions.
+- websearch: Requests to search the web, current information,
+  latest news, websites, and information requiring online research.
 
-        - resources:
-          Monitor CPU, RAM, GPU, battery, temperatures,
-          and running system processes.
+Routing rules:
+1. Prefer chat for ordinary questions and explanations.
+2. Do NOT choose websearch just because a question asks for information.
+3. Choose websearch when the user explicitly requests web searching,
+   asks for current information, or needs online sources.
+4. Choose arxiv for requests to find or investigate academic papers.
+5. Use conversation history to understand follow-up questions.
+6. Return only one route name, with no explanation.
 
-        - trip:
-          Plan travel routes between locations and
-          retrieve distances and directions.
+Valid responses:
+chat
+arxiv
+resources
+trip
+websearch
 
-        - websearch:
-          Search the web for current information,
-          news, websites, and general online queries.
-
-        Rules:
-        1. Understand the user's primary intent.
-        2. Select the most appropriate agent.
-        3. Return only the agent name.
-        4. Do not answer the user's query.
-
-        Valid responses:
-        arxiv
-        resources
-        trip
-        websearch
-        """
+Recent conversation history:
+{chat_history}
+"""
     ),
     ("human", "{query}"),
 ])
 
-
-# 3. Build the routing chain
 router_chain = router_prompt | llm
 
 
-# 4. Route the user's query
-def route_query(query: str) -> str:
+# Prompt for answering ordinary questions directly.
+chat_prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        """
+You are Lumi, a friendly and helpful personal AI assistant.
+
+Answer the user's question directly using your existing knowledge.
+Be conversational for greetings and casual conversation.
+Explain technical topics clearly and give examples when helpful.
+Do not claim to have searched the web or used tools unless you did.
+Use the conversation history to maintain context.
+
+Conversation history:
+{chat_history}
+"""
+    ),
+    ("human", "{query}"),
+])
+
+chat_chain = chat_prompt | llm
+
+
+def _format_history(chat_history=None) -> str:
+    """Convert stored conversation messages into readable history."""
+
+    if not chat_history:
+        return "No previous conversation."
+
+    return "\n".join(
+        f"{message.get('role', 'user')}: {message.get('content', '')}"
+        for message in chat_history
+    )
+
+
+def route_query(query: str, chat_history=None) -> str:
+    """Choose an agent or the direct LLM chat route."""
+
     if not query or not query.strip():
         raise ValueError("Query cannot be empty")
 
     response = router_chain.invoke({
-        "query": query.strip()
+        "query": query.strip(),
+        "chat_history": _format_history(chat_history),
     })
 
-    agent_name = response.content.strip().lower().strip("`")
+    # Accept only a clean route label.
+    route = response.content.strip().lower().strip("`").strip()
+    route = route.splitlines()[0].strip().strip(" .,:;")
 
-    print(f"[Lumi Router] Selected agent: {agent_name}")
+    if route not in VALID_ROUTES:
+        print(
+            f"[Lumi Router] Unexpected output {route!r}; "
+            "falling back to chat."
+        )
+        route = "chat"
 
-    return agent_name
+    print(f"[Lumi Router] Selected route: {route}")
+    return route
+
+
+def chat_query(query: str, chat_history=None) -> str:
+    """Answer directly with the LLM, without invoking a tool agent."""
+
+    response = chat_chain.invoke({
+        "query": query.strip(),
+        "chat_history": _format_history(chat_history),
+    })
+
+    content = response.content
+
+    if isinstance(content, str):
+        return content.strip()
+
+    if isinstance(content, list):
+        parts = [
+            item["text"]
+            for item in content
+            if isinstance(item, dict)
+            and isinstance(item.get("text"), str)
+        ]
+        return " ".join(parts).strip()
+
+    return str(content)
