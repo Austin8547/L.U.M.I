@@ -1,0 +1,41 @@
+
+
+# Environment configuration
+python-dotenv
+
+# LLM and agent orchestration
+langchain
+langchain-core
+langchain-community
+langchain-groq
+langgraph
+langchain-tavily
+
+# Web search and HTTP
+tavily-python
+requests
+beautifulsoup4
+
+# arXiv research and RSS feeds
+arxiv
+feedparser
+
+# OpenStreetMap and route planning
+geopy
+openrouteservice
+
+# Offline Speech-to-Text (STT)
+faster-whisper
+
+# Offline Text-to-Speech (TTS)
+piper-tts
+
+# Audio recording and processing
+sounddevice
+scipy
+numpy
+
+# GPU support for Faster-Whisper (CUDA 12)
+nvidia-cublas-cu12
+nvidia-cudnn-cu12
+
