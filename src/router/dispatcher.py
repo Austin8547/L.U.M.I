@@ -6,6 +6,7 @@ from src.agent.arxiv_agent import arxiv_agent
 from src.agent.utility_agent import system_resource_agent
 from src.agent.route_planner_agent import trip_planner_agent
 from src.agent.web_agent import web_agent
+from src.agent.news_agent import news_agent
 from src.memory.memory import ConversationMemory
 
 
@@ -14,6 +15,7 @@ AGENTS = {
     "resources": system_resource_agent,
     "trip": trip_planner_agent,
     "websearch": web_agent,
+    "news":news_agent,
 }
 
 memory = ConversationMemory()

@@ -10,7 +10,8 @@ llm = ChatGroq(
     temperature=0,
 )
 
-VALID_ROUTES = {"chat", "arxiv", "resources", "trip", "websearch"}
+VALID_ROUTES = {"chat", "arxiv", "resources", "trip", "websearch", "news"}
+
 
 router_prompt = ChatPromptTemplate.from_messages([
     (
@@ -25,22 +26,36 @@ Available routes:
 - chat: Greetings, casual conversation, explanations, programming
   questions, AI/ML concepts, general knowledge, and questions you
   can answer using the LLM's existing knowledge.
+
 - arxiv: Finding academic papers, research papers, authors, abstracts,
   and arXiv links.
+
 - resources: Checking CPU, RAM, GPU, battery, temperatures,
   and running processes.
+
 - trip: Planning travel routes, distances, and directions.
-- websearch: Requests to search the web, current information,
-  latest news, websites, and information requiring online research.
+
+- websearch: Searching the web for current information, websites,
+  general online research, and questions requiring web sources.
+
+- news: Fetching news headlines and article summaries about current
+  events, politics, business, stock markets, technology, science,
+  sports, Kerala, India, international affairs, people, and other
+  news topics using Lumi's news tool.
 
 Routing rules:
 1. Prefer chat for ordinary questions and explanations.
 2. Do NOT choose websearch just because a question asks for information.
-3. Choose websearch when the user explicitly requests web searching,
-   asks for current information, or needs online sources.
-4. Choose arxiv for requests to find or investigate academic papers.
-5. Use conversation history to understand follow-up questions.
-6. Return only one route name, with no explanation.
+3. Choose websearch when the user explicitly requests a web search,
+   online research, or information from websites.
+4. Choose news when the user asks for news, headlines, news updates,
+   recent developments reported as news, or news about a particular
+   person, organization, location, or topic.
+5. If the user asks for news about the stock market, politics,
+   technology, or another topic, choose news rather than websearch.
+6. Choose arxiv for requests to find or investigate academic papers.
+7. Use conversation history to understand follow-up questions.
+8. Return only one route name, with no explanation.
 
 Valid responses:
 chat
@@ -48,6 +63,7 @@ arxiv
 resources
 trip
 websearch
+news
 
 Recent conversation history:
 {chat_history}
@@ -55,6 +71,7 @@ Recent conversation history:
     ),
     ("human", "{query}"),
 ])
+
 
 router_chain = router_prompt | llm
 
