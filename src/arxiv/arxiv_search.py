@@ -3,27 +3,43 @@ import requests
 import feedparser
 from difflib import SequenceMatcher
 
-API_URL = "https://export.arxiv.org/api/query"
+from src.config import (
+    ARXIV_API_URL,
+    ARXIV_USER_AGENT,
+    ARXIV_TIMEOUT,
+    ARXIV_SORT_BY,
+    ARXIV_SORT_ORDER,
+    ARXIV_FETCH_MULTIPLIER,
+    ARXIV_FETCH_MIN,
+    ARXIV_TOOL_DEFAULT_MAX_RESULTS,
+    ARXIV_TOOL_MAX_RESULTS_LIMIT,
+)
+
+API_URL = ARXIV_API_URL
 
 HEADERS = {
-    "User-Agent": "LumiResearchAgent/1.0 (arXiv paper search)"
+    "User-Agent": ARXIV_USER_AGENT
 }
 
 
-def search_papers(query, max_results=3, sort_by="relevance"):
+def search_papers(
+    query,
+    max_results=ARXIV_TOOL_DEFAULT_MAX_RESULTS,
+    sort_by=ARXIV_SORT_BY,
+):
     query = query.strip()
 
     if not query:
         return []
 
-    max_results = max(1, min(int(max_results), 10))
+    max_results = max(1, min(int(max_results), ARXIV_TOOL_MAX_RESULTS_LIMIT))
 
     params = {
         "search_query": f'ti:"{query}"',
         "start": 0,
-        "max_results": max(max_results * 5, 25),
+        "max_results": max(max_results * ARXIV_FETCH_MULTIPLIER, ARXIV_FETCH_MIN),
         "sortBy": sort_by,
-        "sortOrder": "descending",
+        "sortOrder": ARXIV_SORT_ORDER,
     }
 
     try:
@@ -31,7 +47,7 @@ def search_papers(query, max_results=3, sort_by="relevance"):
             API_URL,
             params=params,
             headers=HEADERS,
-            timeout=30,
+            timeout=ARXIV_TIMEOUT,
         )
         response.raise_for_status()
 
@@ -47,7 +63,7 @@ def search_papers(query, max_results=3, sort_by="relevance"):
                 API_URL,
                 params=params,
                 headers=HEADERS,
-                timeout=30,
+                timeout=ARXIV_TIMEOUT,
             )
             response.raise_for_status()
 

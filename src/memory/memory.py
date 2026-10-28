@@ -4,13 +4,15 @@ from pathlib import Path
 from datetime import datetime, timezone
 from uuid import uuid4
 
-DEFAULT_DB_PATH = Path("/home/austin/agentic/lumi/src/memory/lumi_memory.db")
+from src.config import MEMORY_DB_PATH, MEMORY_HISTORY_LIMIT
+
+DEFAULT_DB_PATH = MEMORY_DB_PATH
 
 
 class ConversationMemory:
     """SQLite-based persistent conversation memory for Lumi."""
 
-    def __init__(self, db_path=DEFAULT_DB_PATH):
+    def __init__(self, db_path=MEMORY_DB_PATH):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._initialize_database()
@@ -68,7 +70,7 @@ class ConversationMemory:
                 (session_id, role, content.strip(), timestamp),
             )
 
-    def get_history(self, session_id, limit=20):
+    def get_history(self, session_id, limit=MEMORY_HISTORY_LIMIT):
         """
         Return the most recent messages in chronological order.
 

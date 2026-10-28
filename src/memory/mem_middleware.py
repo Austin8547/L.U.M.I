@@ -1,11 +1,16 @@
 
 from typing import Any
+from src.config import (
+    CONTEXT_MAX_MESSAGES,
+    CONTEXT_MAX_CHARS,
+    CONTEXT_MIN_REMAINING_CHARS,
+)
 
 
 def prepare_context(
     history: list[dict[str, Any]] | None,
-    max_messages: int = 6,
-    max_chars: int = 3000,
+    max_messages: int = CONTEXT_MAX_MESSAGES,
+    max_chars: int = CONTEXT_MAX_CHARS,
 ) -> list[dict[str, str]]:
     """
     Prepare a compact conversation history for an LLM.
@@ -37,7 +42,7 @@ def prepare_context(
             remaining = max_chars - total_chars - len(role)
 
             # Skip an oversized message rather than cutting it mid-sentence.
-            if remaining < 200:
+            if remaining < CONTEXT_MIN_REMAINING_CHARS:
                 break
 
             content = content[-remaining:]

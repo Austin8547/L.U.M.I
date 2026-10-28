@@ -2,10 +2,21 @@
 import sounddevice as sd
 from faster_whisper import WhisperModel
 
-SAMPLE_RATE = 16000
-MODEL_SIZE = "base"
-DEVICE = "cuda"
-COMPUTE_TYPE = "float16"
+from src.config import (
+    WHISPER_MODEL_SIZE,
+    WHISPER_DEVICE,
+    WHISPER_COMPUTE_TYPE,
+    WHISPER_SAMPLE_RATE,
+    WHISPER_RECORD_DURATION,
+    WHISPER_BEAM_SIZE,
+    WHISPER_VAD_FILTER,
+    WHISPER_LANGUAGE,
+)
+
+SAMPLE_RATE = WHISPER_SAMPLE_RATE
+MODEL_SIZE = WHISPER_MODEL_SIZE
+DEVICE = WHISPER_DEVICE
+COMPUTE_TYPE = WHISPER_COMPUTE_TYPE
 
 # Load the model once when the module is imported
 print(f"Loading Faster-Whisper {MODEL_SIZE} on {DEVICE}...")
@@ -19,7 +30,7 @@ model = WhisperModel(
 print("Faster-Whisper Base ready!")
 
 
-def record_and_transcribe(duration=5, sample_rate=SAMPLE_RATE):
+def record_and_transcribe(duration=WHISPER_RECORD_DURATION, sample_rate=WHISPER_SAMPLE_RATE):
     print(f"\nRecording for {duration} seconds... Speak now!")
 
     try:
@@ -37,9 +48,9 @@ def record_and_transcribe(duration=5, sample_rate=SAMPLE_RATE):
 
         segments, info = model.transcribe(
             audio_data,
-            language="en",
-            beam_size=1,
-            vad_filter=True,
+            language=WHISPER_LANGUAGE,
+            beam_size=WHISPER_BEAM_SIZE,
+            vad_filter=WHISPER_VAD_FILTER,
         )
 
         # Iterate over segments to run inference

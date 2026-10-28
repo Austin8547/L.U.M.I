@@ -1,11 +1,9 @@
 
-from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_groq import ChatGroq
 
 from src.tools.web_tools import web_search
-
-load_dotenv()
+from src.config import LLM_MODEL, LLM_TEMPERATURE
 
 SYSTEM_PROMPT = """
 You are Lumi's Web Research Agent.
@@ -21,8 +19,8 @@ Your responsibilities:
 """
 
 llm = ChatGroq(
-    model="qwen/qwen3.8-27b",
-    temperature=0,
+    model=LLM_MODEL,
+    temperature=LLM_TEMPERATURE,
 )
 
 tools = [web_search]

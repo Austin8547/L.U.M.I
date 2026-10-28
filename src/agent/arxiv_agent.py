@@ -3,14 +3,11 @@ from langchain.agents import create_agent
 from langchain_groq import ChatGroq
 
 from src.tools.arxiv_tool import arxiv_paper_search
-import os
-
-from dotenv import load_dotenv
-load_dotenv()
+from src.config import LLM_MODEL, LLM_TEMPERATURE
 
 llm = ChatGroq(
-    model="qwen/qwen3.8-27b",
-    temperature=0,
+    model=LLM_MODEL,
+    temperature=LLM_TEMPERATURE,
 )
 
 tools = [

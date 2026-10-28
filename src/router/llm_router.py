@@ -1,16 +1,17 @@
 
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
-from dotenv import load_dotenv
-
-load_dotenv()
-
-llm = ChatGroq(
-    model="qwen/qwen3.8-27b",
-    temperature=0,
+from src.config import (
+    LLM_MODEL,
+    LLM_TEMPERATURE,
+    VALID_ROUTES,
+    DEFAULT_ROUTE,
 )
 
-VALID_ROUTES = {"chat", "arxiv", "resources", "trip", "websearch", "news"}
+llm = ChatGroq(
+    model=LLM_MODEL,
+    temperature=LLM_TEMPERATURE,
+)
 
 
 router_prompt = ChatPromptTemplate.from_messages([
@@ -129,9 +130,9 @@ def route_query(query: str, chat_history=None) -> str:
     if route not in VALID_ROUTES:
         print(
             f"[Lumi Router] Unexpected output {route!r}; "
-            "falling back to chat."
+            f"falling back to {DEFAULT_ROUTE}."
         )
-        route = "chat"
+        route = DEFAULT_ROUTE
 
     print(f"[Lumi Router] Selected route: {route}")
     return route

@@ -1,6 +1,7 @@
 from langchain_core.tools import tool
 
 from src.arxiv.arxiv_search import search_papers
+from src.config import ARXIV_TOOL_DEFAULT_MAX_RESULTS
 
 import json
 
@@ -8,7 +9,7 @@ import json
 @tool
 def arxiv_paper_search(
     query: str,
-    max_results: int = 3,
+    max_results: int = ARXIV_TOOL_DEFAULT_MAX_RESULTS,
 ) -> str:
     """
     Search arXiv for research papers.

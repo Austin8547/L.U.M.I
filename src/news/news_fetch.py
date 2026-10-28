@@ -20,24 +20,18 @@ class Article:
     summary: str
 
 
+from src.config import (
+    HINDU_FEEDS,
+    GOOGLE_NEWS_RSS_BASE,
+    NEWS_DEFAULT_LIMIT,
+)
+
+
 class NewsFetcher:
     """RSS news fetcher for L.U.M.I. assistant pipelines."""
 
     # Direct section mapping for The Hindu RSS feeds
-    HINDU_FEEDS = {
-        "home": "https://www.thehindu.com/feeder/default.rss",
-        "national": "https://www.thehindu.com/news/national/feeder/default.rss",
-        "international": "https://www.thehindu.com/news/international/feeder/default.rss",
-        "editorial": "https://www.thehindu.com/opinion/editorial/feeder/default.rss",
-        "opinion": "https://www.thehindu.com/opinion/feeder/default.rss",
-        "business": "https://www.thehindu.com/business/feeder/default.rss",
-        "economy": "https://www.thehindu.com/business/Economy/feeder/default.rss",
-        "technology": "https://www.thehindu.com/sci-tech/technology/feeder/default.rss",
-        "science": "https://www.thehindu.com/sci-tech/science/feeder/default.rss",
-        "kerala": "https://www.thehindu.com/news/national/kerala/feeder/default.rss",
-        "tamil nadu": "https://www.thehindu.com/news/national/tamil-nadu/feeder/default.rss",
-        "karnataka": "https://www.thehindu.com/news/national/karnataka/feeder/default.rss",
-    }
+    HINDU_FEEDS = HINDU_FEEDS
 
     @classmethod
     def _clean_text(cls, raw_text: str) -> str:
@@ -69,16 +63,13 @@ class NewsFetcher:
         # All other topics use Google News RSS
         encoded_query = urllib.parse.quote_plus(query.strip())
 
-        return (
-            "https://news.google.com/rss/search"
-            f"?q={encoded_query}&hl=en-IN&gl=IN&ceid=IN:en"
-        )
+        return GOOGLE_NEWS_RSS_BASE.format(query=encoded_query)
 
     @classmethod
     def fetch_news(
         cls,
         query: str = "national",
-        limit: int = 5
+        limit: int = NEWS_DEFAULT_LIMIT
     ) -> List[Article]:
         """Fetch news articles for a category or custom search query."""
         if limit <= 0:
@@ -122,7 +113,7 @@ class NewsFetcher:
     def get_news_with_abstract(
         cls,
         query: str = "national",
-        limit: int = 5
+        limit: int = NEWS_DEFAULT_LIMIT
     ) -> Tuple[str, List[Article]]:
         """
         Return a brief combined news summary and individual articles.

@@ -3,6 +3,7 @@ from src.router.dispatcher import dispatch_query
 from src.memory.memory import ConversationMemory
 from src.voice.tts_piper import load_voice, text_to_speech_piper
 from src.voice.sst_whisper import record_and_transcribe
+from src.config import WHISPER_RECORD_DURATION
 
 
 def extract_response(result):
@@ -113,7 +114,7 @@ def main():
                 "(Speak now or type 'q' to change modes)"
             )
 
-            query = record_and_transcribe(duration=5)
+            query = record_and_transcribe(duration=WHISPER_RECORD_DURATION)
 
             if not query or not query.strip():
                 print(

@@ -9,14 +9,21 @@ from piper import PiperVoice
 import emoji
 
 from src.voice.keyboard_listner import TerminalKeyListener
+from src.config import (
+    PIPER_MODEL_PATH,
+    PIPER_CHUNK_SIZE,
+    PIPER_KEY_POLL_MS,
+    PIPER_PAUSE_POLL_MS,
+)
 
-MODEL_NAME = "/home/austin/agentic/lumi/src/voice/files/en_US-lessac-medium.onnx"
+MODEL_NAME = str(PIPER_MODEL_PATH)
 
 
-def load_voice(model_path=MODEL_NAME):
-    if not os.path.isfile(model_path):
+def load_voice(model_path=PIPER_MODEL_PATH):
+    model_path_str = str(model_path)
+    if not os.path.isfile(model_path_str):
         raise FileNotFoundError(f"Piper voice model not found: {model_path}")
-    return PiperVoice.load(model_path)
+    return PiperVoice.load(model_path_str)
 
 
 def clean_text_for_tts(text: str) -> str:
@@ -90,13 +97,13 @@ def text_to_speech_piper(text, voice):
                                 stop_playback = True
                                 print("\n[TTS Skipped. Moving to next input...]")
                             break
-                    sd.sleep(10)
+                    sd.sleep(PIPER_KEY_POLL_MS)
 
         listener_thread = threading.Thread(target=listen_for_keys, daemon=True)
         listener_thread.start()
 
         # Stream audio
-        chunk_size = 1024
+        chunk_size = PIPER_CHUNK_SIZE
         stream = sd.OutputStream(samplerate=sample_rate, channels=channels, dtype="int16")
         stream.start()
 
@@ -111,7 +118,7 @@ def text_to_speech_piper(text, voice):
                     paused = is_paused
 
                 if paused:
-                    sd.sleep(50)
+                    sd.sleep(PIPER_PAUSE_POLL_MS)
                     continue
 
                 end_idx = min(idx + chunk_size, total_len)

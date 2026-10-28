@@ -1,15 +1,20 @@
 
-from dotenv import load_dotenv
 from langchain_tavily import TavilySearch
 
-load_dotenv()
+from src.config import (
+    TAVILY_MAX_RESULTS,
+    TAVILY_TOPIC,
+    TAVILY_SEARCH_DEPTH,
+    TAVILY_INCLUDE_ANSWER,
+    TAVILY_INCLUDE_RAW_CONTENT,
+)
 
 tavily = TavilySearch(
-    max_results=3,
-    topic="general",
-    search_depth="basic",
-    include_answer=False,
-    include_raw_content=False,
+    max_results=TAVILY_MAX_RESULTS,
+    topic=TAVILY_TOPIC,
+    search_depth=TAVILY_SEARCH_DEPTH,
+    include_answer=TAVILY_INCLUDE_ANSWER,
+    include_raw_content=TAVILY_INCLUDE_RAW_CONTENT,
 )
 
 

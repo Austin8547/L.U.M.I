@@ -8,6 +8,11 @@ from src.agent.route_planner_agent import trip_planner_agent
 from src.agent.web_agent import web_agent
 from src.agent.news_agent import news_agent
 from src.memory.memory import ConversationMemory
+from src.config import (
+    MEMORY_HISTORY_LIMIT,
+    CONTEXT_MAX_MESSAGES,
+    CONTEXT_MAX_CHARS,
+)
 
 
 AGENTS = {
@@ -67,11 +72,11 @@ def dispatch_query(query: str, session_id: str):
     query = query.strip()
 
     # 1. Retrieve previous conversation history.
-    full_history = memory.get_history(session_id, limit=20)
+    full_history = memory.get_history(session_id, limit=MEMORY_HISTORY_LIMIT)
     history = prepare_context(
-    full_history,
-    max_messages=6,
-    max_chars=3000,
+        full_history,
+        max_messages=CONTEXT_MAX_MESSAGES,
+        max_chars=CONTEXT_MAX_CHARS,
     )
 
     # 2. Save the current user message.

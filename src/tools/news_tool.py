@@ -1,9 +1,15 @@
 from src.news.news_fetch import NewsFetcher
 from langchain_core.tools import tool
+from src.config import (
+    NEWS_DEFAULT_LIMIT,
+    NEWS_SUMMARY_MAX_CHARS,
+    NEWS_TOOL_MIN_LIMIT,
+    NEWS_TOOL_MAX_LIMIT,
+)
 
 
 @tool
-def fetch_news(query: str, limit: int = 5) -> str:
+def fetch_news(query: str, limit: int = NEWS_DEFAULT_LIMIT) -> str:
     """
     Fetch recent news headlines and short summaries.
 
@@ -29,8 +35,8 @@ def fetch_news(query: str, limit: int = 5) -> str:
     if not query:
         return "Please provide a news topic or category."
 
-    if not 1 <= limit <= 5:
-        return "The article limit must be between 1 and 5."
+    if not NEWS_TOOL_MIN_LIMIT <= limit <= NEWS_TOOL_MAX_LIMIT:
+        return f"The article limit must be between {NEWS_TOOL_MIN_LIMIT} and {NEWS_TOOL_MAX_LIMIT}."
 
     try:
         articles = NewsFetcher.fetch_news(
@@ -53,8 +59,8 @@ def fetch_news(query: str, limit: int = 5) -> str:
             summary = article.summary.strip()
 
             # Keep tool output compact to reduce LLM context usage.
-            if len(summary) > 400:
-                summary = summary[:400].rsplit(" ", 1)[0] + "..."
+            if len(summary) > NEWS_SUMMARY_MAX_CHARS:
+                summary = summary[:NEWS_SUMMARY_MAX_CHARS].rsplit(" ", 1)[0] + "..."
 
             results.extend([
                 f"{index}. {title}",

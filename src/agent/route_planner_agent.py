@@ -1,15 +1,12 @@
-import os
-
-from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_groq import ChatGroq
 
 from src.tools.trip_tool import shortest_path
-
-load_dotenv()
+from src.config import LLM_MODEL, LLM_TEMPERATURE
 
 llm = ChatGroq(
-    model="qwen/qwen3.8-27b"
+    model=LLM_MODEL,
+    temperature=LLM_TEMPERATURE,
 )
 
 system_tools = [
